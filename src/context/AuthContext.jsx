@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Get API base URL from environment variable (Vite uses import.meta.env)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_ROOT = `${API_BASE_URL}/api`;
 
 const AuthContext = createContext(null);
 
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
         // Listen for custom event dispatched from api.js
         window.addEventListener('unauthorized', handleUnauthorized);
-        
+
         return () => {
             window.removeEventListener('unauthorized', handleUnauthorized);
         };
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }) => {
      */
     const requestOtp = async (email) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/request-otp`, {
+            const response = await fetch(`${API_ROOT}/auth/request-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,33 +92,33 @@ export const AuthProvider = ({ children }) => {
 
             const deviceInfo = navigator.userAgent;
 
-            const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+            const response = await fetch(`${API_ROOT}/auth/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    email, 
-                    otp, 
+                body: JSON.stringify({
+                    email,
+                    otp,
                     deviceId,
                     deviceInfo,
-                    logoutFromOtherDevices 
+                    logoutFromOtherDevices
                 }),
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                
+
                 // Handle 409 Conflict - user logged in on another device
                 if (response.status === 409 && error.canLogoutFromOtherDevices) {
-                    return { 
-                        success: false, 
+                    return {
+                        success: false,
                         error: error.message,
                         conflict: true,
                         sessions: error.sessions || []
                     };
                 }
-                
+
                 throw new Error(error.message || 'OTP verification failed');
             }
 
@@ -145,7 +146,7 @@ export const AuthProvider = ({ children }) => {
      */
     const login = async (email, password) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/legacy/login`, {
+            const response = await fetch(`${API_ROOT}/auth/legacy/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,11 +189,11 @@ export const AuthProvider = ({ children }) => {
         try {
             // Get refresh token from localStorage
             const refreshToken = localStorage.getItem('adminRefreshToken');
-            
+
             // Call backend to delete refresh token if available
             if (refreshToken) {
                 try {
-                    await fetch(`${API_BASE_URL}/auth/logout`, {
+                    await fetch(`${API_ROOT}/auth/logout`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
