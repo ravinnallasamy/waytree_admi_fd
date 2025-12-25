@@ -8,14 +8,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 export const fetchWithAuth = async (endpoint, options = {}) => {
     // Ensure endpoint starts with a slash
     let normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    
+
     // Add /api prefix if not already present and not an external URL
     if (!endpoint.startsWith('http') && !normalizedEndpoint.startsWith('/api/')) {
         normalizedEndpoint = `/api${normalizedEndpoint}`;
     }
-    
+
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${normalizedEndpoint}`;
-    
+
     // Log the request for debugging
     console.log(`🌐 [API] ${options.method || 'GET'} ${url}`);
 
@@ -45,19 +45,75 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
         console.log('📡 [API] Response status:', response.status, response.statusText);
 
         if (!response.ok) {
-            // Handle 401 Unauthorized - clear tokens and redirect to login
+            // Handle 401 Unauthorized
             if (response.status === 401) {
-                console.error('❌ [API] Unauthorized - clearing tokens and redirecting to login');
-                
+                // If we are already trying to refresh, or this is a refresh attempt failing, logout
+                if (url.includes('/auth/refresh')) {
+                    console.error('❌ [API] Refresh token expired or invalid - logging out');
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminRefreshToken');
+                    localStorage.removeItem('adminUser');
+                    localStorage.removeItem('deviceId');
+                    window.dispatchEvent(new CustomEvent('unauthorized'));
+                    return { error: 'Unauthorized' };
+                }
+
+                console.log('🔄 [API] Access token expired, attempting refresh...');
+                const refreshToken = localStorage.getItem('adminRefreshToken');
+
+                if (refreshToken) {
+                    try {
+                        // Attempt to refresh token
+                        const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ refreshToken })
+                        });
+
+                        if (refreshResponse.ok) {
+                            const data = await refreshResponse.json();
+                            const newAccessToken = data.accessToken;
+
+                            console.log('✅ [API] Token refreshed successfully');
+
+                            // Update local storage
+                            localStorage.setItem('adminToken', newAccessToken);
+
+                            // Update headers with new token
+                            const newHeaders = {
+                                ...headers,
+                                'Authorization': `Bearer ${newAccessToken}`
+                            };
+
+                            // Retry original request
+                            console.log('🔄 [API] Retrying original request...');
+                            return await fetchWithAuth(endpoint, {
+                                ...options,
+                                headers: newHeaders // Pass updated headers prevents re-reading old token from localStorage immediately if we didn't recurse fetchWithAuth correctly, but recursion fetchWithAuth will read new token from localStorage
+                            });
+                        } else {
+                            console.error('❌ [API] Token refresh failed');
+                            throw new Error('Token refresh failed');
+                        }
+                    } catch (refreshError) {
+                        console.error('❌ [API] Error refreshing token:', refreshError);
+                        // Fall through to logout logic below
+                    }
+                } else {
+                    console.log('ℹ️ [API] No refresh token available');
+                }
+
+                console.error('❌ [API] Unauthorized and refresh failed - clearing tokens and redirecting');
+
                 // Clear all tokens and user data
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('adminRefreshToken');
                 localStorage.removeItem('adminUser');
                 localStorage.removeItem('deviceId');
-                
+
                 // Dispatch custom event to notify AuthContext
                 window.dispatchEvent(new CustomEvent('unauthorized'));
-                
+
                 // Don't throw error here to prevent multiple redirects
                 return { error: 'Unauthorized' };
             }
@@ -91,7 +147,7 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
 
         // Parse JSON response
         const data = await response.json();
-        
+
         // Log successful response for debugging
         console.log('✅ [API] Request successful', {
             url,
@@ -130,8 +186,8 @@ export const api = {
         return response;
     },
     post: async (endpoint, data) => {
-        const response = await fetchWithAuth(endpoint, { 
-            method: 'POST', 
+        const response = await fetchWithAuth(endpoint, {
+            method: 'POST',
             body: JSON.stringify(data),
             headers: {
                 'Content-Type': 'application/json'
@@ -140,8 +196,8 @@ export const api = {
         return response;
     },
     put: async (endpoint, data) => {
-        const response = await fetchWithAuth(endpoint, { 
-            method: 'PUT', 
+        const response = await fetchWithAuth(endpoint, {
+            method: 'PUT',
             body: JSON.stringify(data),
             headers: {
                 'Content-Type': 'application/json'
@@ -150,8 +206,8 @@ export const api = {
         return response;
     },
     delete: async (endpoint) => {
-        const response = await fetchWithAuth(endpoint, { 
-            method: 'DELETE' 
+        const response = await fetchWithAuth(endpoint, {
+            method: 'DELETE'
         });
         return response;
     },
