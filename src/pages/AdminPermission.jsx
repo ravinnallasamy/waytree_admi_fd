@@ -100,7 +100,7 @@ const AdminPermission = () => {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {filteredEvents.map((event) => (
+                    {events.map((event) => (
                         <div key={event._id} className="bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row gap-6 items-start md:items-center border border-gray-100 hover:border-indigo-100 transition-colors">
                             {/* Image Thumbnail */}
                             <div className="w-full md:w-32 h-48 md:h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
