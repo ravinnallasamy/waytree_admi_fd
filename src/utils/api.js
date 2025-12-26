@@ -3,7 +3,7 @@
 // Get API base URL from environment variable (Vite uses import.meta.env)
 // Default to localhost for development
 // Default to Render URL for production/demo if env var not set
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://waytree-bc.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://waytree-admin-backend.onrender.com';
 
 // Helper function to make authenticated API calls
 export const fetchWithAuth = async (endpoint, options = {}) => {
