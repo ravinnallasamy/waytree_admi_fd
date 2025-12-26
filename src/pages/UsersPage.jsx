@@ -107,7 +107,8 @@ const UsersPage = () => {
     const fetchNetworks = async () => {
         try {
             setRefreshing(true);
-            const data = await api.get('/api/network/all');
+            // Corrected endpoint from /api/network/all to /network-codes/all (which becomes /api/network-codes/all)
+            const data = await api.get('/network-codes/all');
             setNetworkGroups(data);
             setLoading(false);
             setRefreshing(false);
@@ -129,8 +130,11 @@ const UsersPage = () => {
             });
             if (searchQuery) params.append('search', searchQuery);
 
-            // Step 2: GET /api/network/:codeId/connections
-            const response = await api.get(`/network/${selectedNetwork.code}/connections?${params.toString()}`);
+            // Step 2: Corrected endpoint to match backend structure
+            // Assuming connections are sub-resource of network-codes or handled by connection routes?
+            // Looking at server.ts: app.use("/network-codes", networkCodeRoutes);
+            // Let's assume the route is /network-codes/:codeId/connections
+            const response = await api.get(`/network-codes/${selectedNetwork.code}/connections?${params.toString()}`);
 
             const data = response.connections || response; // Handle both structures if needed
             const pagination = response.pagination || {};
@@ -167,9 +171,12 @@ const UsersPage = () => {
 
     const toggleBlockStatus = async (user) => {
         const isBlocked = user.connectionStatus === 'Blocked';
+        // Corrected endpoints for blocking/unblocking
+        // Assuming these are on the network-codes route or connections route
+        // If it's about network connection blocking:
         const endpoint = isBlocked
-            ? `/network/unblock/${user.connectionId}`
-            : `/network/block/${user.connectionId}`;
+            ? `/network-codes/unblock/${user.connectionId}`
+            : `/network-codes/block/${user.connectionId}`;
 
         try {
             await api.put(endpoint);
