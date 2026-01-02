@@ -18,6 +18,9 @@ const AdminPermission = lazy(() => import('./pages/AdminPermission'));
 const AdminManagement = lazy(() => import('./pages/AdminManagement'));
 const DataExplorer = lazy(() => import('./pages/DataExplorer'));
 const UserManipulationPage = lazy(() => import('./pages/UserManipulationPage'));
+const VerifiedCircles = lazy(() => import('./pages/VerifiedCircles'));
+const CreateCircle = lazy(() => import('./pages/CreateCircle'));
+const PendingApprovals = lazy(() => import('./pages/PendingApprovals'));
 
 function App() {
   return (
@@ -32,7 +35,9 @@ function App() {
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<AdminLayout />}>
-                  <Route path="dashboard" element={<div className="text-gray-800">Dashboard Content Coming Soon</div>} />
+                  <Route path="dashboard" element={<PendingApprovals />} />
+                  <Route path="admin/circles" element={<VerifiedCircles />} />
+                  <Route path="admin/create-circle" element={<CreateCircle />} />
                   <Route path="create-event" element={<EventsPage />} />
                   <Route path="create-event/new" element={<CreateEventForm />} />
                   <Route path="admin/events" element={<AdminEvents />} />

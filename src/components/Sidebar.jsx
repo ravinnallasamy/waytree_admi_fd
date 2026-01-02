@@ -17,11 +17,11 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const navItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: CheckCircle, label: 'Verified Events', path: '/admin/events' },
-        { icon: AlertCircle, label: 'Pending Approvals', path: '/admin/permission' },
+        { icon: AlertCircle, label: 'Pending Approvals', path: '/dashboard' },
+        { icon: LayoutDashboard, label: 'Verified Circles', path: '/admin/circles' },
+        { icon: PlusCircle, label: 'Create Circle', path: '/admin/create-circle' },
         { icon: Network, label: 'User Connections', path: '/admin/users?type=user' },
-        { icon: Calendar, label: 'Event Connections', path: '/admin/users?type=event' },
+        { icon: Calendar, label: 'Circle Members', path: '/admin/users?type=event' },
         { icon: Users, label: 'Manage Users', path: '/admin/user-manipulation' },
         { icon: Shield, label: 'Admin Management', path: '/admin/management', superOnly: true },
         { icon: Settings, label: 'Settings', path: '/settings' },

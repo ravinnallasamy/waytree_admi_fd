@@ -11,7 +11,9 @@ const AdminLayout = () => {
 
     const getPageTitle = () => {
         switch (location.pathname) {
-            case '/dashboard': return 'Dashboard';
+            case '/dashboard': return 'Pending Approvals';
+            case '/admin/circles': return 'Verified Circles Library';
+            case '/admin/create-circle': return 'Establish New Circle';
             case '/create-event': return 'Create New Event';
             case '/admin/events': return 'Verified Events';
             case '/admin/permission': return 'Pending Approvals';
