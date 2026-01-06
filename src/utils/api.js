@@ -180,6 +180,8 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
     }
 };
 
+import cacheManager, { CacheTTL } from './cache';
+
 // Convenience methods
 export const api = {
     get: async (endpoint, options = {}) => {
@@ -189,7 +191,28 @@ export const api = {
             const queryString = new URLSearchParams(options.params).toString();
             url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryString}`;
         }
+
+        // Check cache first (unless disabled)
+        if (!options.noCache) {
+            const cacheKey = cacheManager.generateKey(url, options.params);
+            const cached = cacheManager.get(cacheKey);
+
+            if (cached) {
+                console.log('⚡ [API] Returning cached response for:', url);
+                return cached;
+            }
+        }
+
+        // Fetch from server
         const response = await fetchWithAuth(url, { method: 'GET', ...options });
+
+        // Store in cache with appropriate TTL
+        if (!options.noCache && response) {
+            const cacheKey = cacheManager.generateKey(url, options.params);
+            const ttl = options.cacheTTL || CacheTTL.MEDIUM;
+            cacheManager.set(cacheKey, response, ttl);
+        }
+
         return response;
     },
     post: async (endpoint, data) => {
@@ -200,6 +223,10 @@ export const api = {
                 'Content-Type': 'application/json'
             }
         });
+
+        // Invalidate related cache entries
+        cacheManager.clearPattern(endpoint.split('?')[0]);
+
         return response;
     },
     put: async (endpoint, data) => {
@@ -210,14 +237,31 @@ export const api = {
                 'Content-Type': 'application/json'
             }
         });
+
+        // Invalidate related cache entries
+        cacheManager.clearPattern(endpoint.split('?')[0]);
+
         return response;
     },
     delete: async (endpoint) => {
         const response = await fetchWithAuth(endpoint, {
             method: 'DELETE'
         });
+
+        // Invalidate related cache entries
+        cacheManager.clearPattern(endpoint.split('?')[0]);
+
         return response;
     },
+
+    // Utility to manually clear cache
+    clearCache: (pattern) => {
+        if (pattern) {
+            cacheManager.clearPattern(pattern);
+        } else {
+            cacheManager.clear();
+        }
+    }
 };
 
 export default api;

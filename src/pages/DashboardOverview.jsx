@@ -185,9 +185,9 @@ const DashboardOverview = () => {
                         <h2 className="text-xl font-black text-gray-900">User Growth Trend</h2>
                         <p className="text-sm text-gray-400 font-medium">New registrations over the last 30 days</p>
                     </div>
-                    <div className="h-[320px] w-full">
-                        {growthData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                    <div style={{ width: '100%', height: '320px', minHeight: '320px' }}>
+                        {growthData && growthData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={320}>
                                 <AreaChart data={growthData}>
                                     <defs>
                                         <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
@@ -220,8 +220,8 @@ const DashboardOverview = () => {
                     {/* Breakdown Pie Chart */}
                     <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
                         <h2 className="text-xl font-black text-gray-900 mb-6">Platform Content</h2>
-                        <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div style={{ width: '100%', height: '200px', minHeight: '200px' }}>
+                            <ResponsiveContainer width="100%" height={200}>
                                 <BarChart data={activityComparisonData} layout="vertical" barSize={20}>
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="name" type="category" width={100} tick={{ fill: '#4B5563', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
@@ -250,8 +250,8 @@ const DashboardOverview = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="w-24 h-24">
-                                <ResponsiveContainer width="100%" height="100%">
+                            <div style={{ width: '96px', height: '96px', minWidth: '96px', minHeight: '96px' }}>
+                                <ResponsiveContainer width={96} height={96}>
                                     <PieChart>
                                         <Pie
                                             data={verificationData}
