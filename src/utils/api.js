@@ -182,8 +182,14 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
 
 // Convenience methods
 export const api = {
-    get: async (endpoint) => {
-        const response = await fetchWithAuth(endpoint, { method: 'GET' });
+    get: async (endpoint, options = {}) => {
+        // Handle params option - convert to query string
+        let url = endpoint;
+        if (options.params) {
+            const queryString = new URLSearchParams(options.params).toString();
+            url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryString}`;
+        }
+        const response = await fetchWithAuth(url, { method: 'GET', ...options });
         return response;
     },
     post: async (endpoint, data) => {

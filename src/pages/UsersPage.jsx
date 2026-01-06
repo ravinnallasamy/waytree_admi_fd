@@ -404,7 +404,8 @@ const UsersPage = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {connectionType === 'circle' && (
+                    {/* TOGGLE BUTTON FIX: Changed condition from 'circle' to 'event' */}
+                    {connectionType === 'event' && (
                         <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200 shadow-inner">
                             {['events', 'communities'].map((filter) => (
                                 <button
@@ -422,6 +423,7 @@ const UsersPage = () => {
                     )}
                 </div>
             )}
+
 
             {/* Back to Overview for Members View */}
             {(selectedNetwork || selectedEvent) && (

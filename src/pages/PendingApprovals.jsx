@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Tag, Trash2, Eye, CheckCircle, Search, Users, Globe, Clock } from 'lucide-react';
 import api from '../utils/api';
 import EventThumbnail from '../components/EventThumbnail';
+import EventPreviewModal from '../components/EventPreviewModal';
 
 const PendingApprovals = () => {
     const [activeTab, setActiveTab] = useState('events'); // 'events' or 'communities'
@@ -9,6 +10,7 @@ const PendingApprovals = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionId, setActionId] = useState(null);
+    const [previewEvent, setPreviewEvent] = useState(null); // State for preview modal
 
     useEffect(() => {
         fetchData();
@@ -186,6 +188,15 @@ const PendingApprovals = () => {
                                         </div>
 
                                         <div className="flex gap-4">
+                                            {/* Preview Button */}
+                                            <button
+                                                onClick={() => setPreviewEvent(item)}
+                                                className="px-4 py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-black hover:bg-indigo-100 transition-all border border-indigo-100 hover:border-indigo-200 active:scale-95"
+                                                title="Preview details"
+                                            >
+                                                <Eye size={20} />
+                                            </button>
+
                                             <button
                                                 onClick={() => handleApprove(item._id)}
                                                 disabled={actionId === item._id}
@@ -197,7 +208,7 @@ const PendingApprovals = () => {
                                             <button
                                                 onClick={() => handleDelete(item._id)}
                                                 disabled={actionId === item._id}
-                                                className="px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-black hover:bg-red-100 transition-all border border-red-100 hover:border-red-200 active:scale-95 disabled:opacity-50"
+                                                className="px-4 py-4 bg-red-50 text-red-600 rounded-2xl font-black hover:bg-red-100 transition-all border border-red-100 hover:border-red-200 active:scale-95 disabled:opacity-50"
                                             >
                                                 <Trash2 size={20} />
                                             </button>
@@ -209,6 +220,14 @@ const PendingApprovals = () => {
                     )}
                 </div>
             </div>
+
+            {/* Preview Modal */}
+            {previewEvent && (
+                <EventPreviewModal
+                    event={previewEvent}
+                    onClose={() => setPreviewEvent(null)}
+                />
+            )}
         </div>
     );
 };

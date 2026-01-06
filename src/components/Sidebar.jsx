@@ -17,8 +17,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const navItems = [
-        { icon: AlertCircle, label: 'Pending Approvals', path: '/dashboard' },
-        { icon: LayoutDashboard, label: 'Verified Circles', path: '/admin/circles' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+        { icon: AlertCircle, label: 'Pending Approvals', path: '/admin/approvals' },
+        { icon: CheckCircle, label: 'Verified Circles', path: '/admin/circles' },
+        // Admin Created Circles Section
+        { icon: UserCog, label: 'Admin Circles', path: '/admin/my-circles' },
+
         { icon: PlusCircle, label: 'Create Circle', path: '/admin/create-circle' },
         { icon: Network, label: 'User Connections', path: '/admin/users?type=user' },
         { icon: Calendar, label: 'Circle Members', path: '/admin/users?type=event' },

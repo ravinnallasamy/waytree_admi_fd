@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Tag, Trash2, Eye, EyeOff, CheckCircle, XCircle, Search, Users, Globe } from 'lucide-react';
+import { Calendar, MapPin, Tag, Trash2, Eye, Edit, EyeOff, CheckCircle, XCircle, Search, Users, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import EventThumbnail from '../components/EventThumbnail';
@@ -167,20 +167,35 @@ const VerifiedCircles = () => {
                                             )}
                                         </div>
 
-                                        <div className="flex gap-4">
+                                        <div className="flex gap-2">
                                             <button
-                                                onClick={() => activeTab === 'events' ? navigate(`/admin/events/${item._id}`) : null}
-                                                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-black hover:bg-indigo-100 transition-all border border-indigo-100"
+                                                onClick={() => navigate(`/admin/events/${item._id}`)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition-all border border-indigo-100"
                                             >
-                                                <Eye size={20} />
+                                                <Eye size={18} />
                                                 Review
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/admin/edit-circle/${item._id}`)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 text-amber-600 rounded-xl font-bold hover:bg-amber-100 transition-all border border-amber-100"
+                                            >
+                                                <Edit size={18} />
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/admin/events/${item._id}/connections`)}
+                                                className="flex-none flex items-center justify-center gap-2 px-4 py-3 bg-teal-50 text-teal-600 rounded-xl font-bold hover:bg-teal-100 transition-all border border-teal-100"
+                                                title="Manage Members"
+                                            >
+                                                <Users size={18} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item._id)}
                                                 disabled={actionId === item._id}
-                                                className="px-6 py-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100"
+                                                className="flex-none px-4 py-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100"
+                                                title="Delete"
                                             >
-                                                <Trash2 size={24} />
+                                                <Trash2 size={20} />
                                             </button>
                                         </div>
                                     </div>

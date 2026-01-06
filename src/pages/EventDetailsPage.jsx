@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import {
     Calendar, MapPin, Tag, ArrowLeft, Clock, CheckCircle,
-    User, FileText, Download, Share2, Heart
+    User, FileText, Download, Share2, Heart, Mail, Edit, Users, Trash2
 } from 'lucide-react';
 
 const EventDetailsPage = () => {
@@ -12,6 +12,7 @@ const EventDetailsPage = () => {
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     useEffect(() => {
         const fetchEventDetails = async () => {
@@ -87,6 +88,34 @@ const EventDetailsPage = () => {
 
     const dateInfo = formatDate(event.dateTime);
 
+
+
+    // Combine attachments and pdfFiles for display
+    const allDocuments = [
+        ...(event.attachments || []),
+        ...(event.pdfFiles || []).map(url => {
+            // Extract filename from URL (similar to App logic)
+            let name = 'Document';
+            try {
+                const parts = url.split('/');
+                let filename = parts[parts.length - 1];
+                filename = decodeURIComponent(filename);
+                if (filename.contains('--')) {
+                    name = filename.split('--')[1];
+                } else {
+                    name = filename.replace(/^\d+-/, '').replace(/_/g, ' ');
+                }
+            } catch (e) { name = 'Document'; }
+
+            return {
+                name: name,
+                url: url,
+                type: url.toLowerCase().endsWith('.pdf') ? 'PDF' :
+                    url.toLowerCase().endsWith('.xlsx') ? 'Excel' : 'Document'
+            };
+        })
+    ];
+
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Hero Section with Glassmorphism */}
@@ -114,11 +143,35 @@ const EventDetailsPage = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <div className="flex gap-3">
-                        <button className="p-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/30 transition-all">
-                            <Share2 size={20} />
+                        <button
+                            onClick={() => navigate(`/admin/edit-circle/${id}`)}
+                            className="p-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/30 transition-all"
+                            title="Edit"
+                        >
+                            <Edit size={20} />
                         </button>
-                        <button className="p-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/30 transition-all">
-                            <Heart size={20} />
+                        <button
+                            onClick={() => navigate(`/admin/events/${id}/connections`)}
+                            className="p-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/30 transition-all"
+                            title="Members"
+                        >
+                            <Users size={20} />
+                        </button>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this event?')) {
+                                    try {
+                                        await api.delete(`/events/${id}`);
+                                        navigate('/admin/circles');
+                                    } catch (err) {
+                                        alert('Failed to delete event');
+                                    }
+                                }
+                            }}
+                            className="p-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-red-100 hover:bg-red-500/50 hover:text-white transition-all"
+                            title="Delete"
+                        >
+                            <Trash2 size={20} />
                         </button>
                     </div>
                 </div>
@@ -239,9 +292,12 @@ const EventDetailsPage = () => {
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Organizer</h3>
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl">
-                                    {/* Initials or User Icon */}
-                                    <User size={24} />
+                                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl overflow-hidden">
+                                    {event.createdBy?.photoUrl ? (
+                                        <img src={event.createdBy.photoUrl} alt="Organizer" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User size={24} />
+                                    )}
                                 </div>
                                 <div>
                                     <p className="font-semibold text-gray-900">
@@ -251,7 +307,10 @@ const EventDetailsPage = () => {
                                     <p className="text-xs text-gray-500">Verified Organizer</p>
                                 </div>
                             </div>
-                            <button className="w-full mt-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            <button
+                                onClick={() => setShowProfileModal(true)}
+                                className="w-full mt-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
                                 View Profile
                             </button>
                         </div>
@@ -263,9 +322,9 @@ const EventDetailsPage = () => {
                                 Documents & Files
                             </h3>
 
-                            {event.attachments && event.attachments.length > 0 ? (
+                            {allDocuments.length > 0 ? (
                                 <div className="space-y-3">
-                                    {event.attachments.map((file, index) => (
+                                    {allDocuments.map((file, index) => (
                                         <a
                                             key={index}
                                             href={file.url}
@@ -293,13 +352,83 @@ const EventDetailsPage = () => {
                                 </div>
                             )}
                         </div>
-
-
                     </div>
                 </div>
             </div>
+
+            {/* Profile Modal */}
+            {showProfileModal && event.createdBy && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100">
+                        <div className="relative h-32 bg-gradient-to-r from-indigo-500 to-purple-600">
+                            <button
+                                onClick={() => setShowProfileModal(false)}
+                                className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/30 text-white rounded-full transition-colors"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        </div>
+                        <div className="px-6 pb-6">
+                            <div className="relative -mt-16 mb-4 flex justify-between items-end">
+                                <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
+                                    {event.createdBy.photoUrl ? (
+                                        <img src={event.createdBy.photoUrl} alt={event.createdBy.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                            <User size={48} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-gray-900">{event.createdBy.name || 'Organizer'}</h2>
+                            <p className="text-indigo-600 font-medium mb-4">{event.createdBy.role || 'Member'} • {event.createdBy.company || 'Company'}</p>
+
+                            <div className="space-y-4">
+                                <div className="p-4 bg-gray-50 rounded-2xl space-y-3">
+                                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                                        <Mail className="w-4 h-4 text-gray-400" />
+                                        <span>{event.createdBy.email || 'No email provided'}</span>
+                                    </div>
+                                    {event.createdBy.location && (
+                                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                            <span>{event.createdBy.location}</span>
+                                        </div>
+                                    )}
+                                    {event.createdBy.website && (
+                                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                                            <Tag className="w-4 h-4 text-gray-400" />
+                                            <a href={event.createdBy.website} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
+                                                {event.createdBy.website}
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {event.createdBy.oneLiner && (
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Bio</p>
+                                        <p className="text-gray-700 text-sm leading-relaxed">{event.createdBy.oneLiner}</p>
+                                    </div>
+                                )}
+
+                                {event.createdBy.primaryGoal && (
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Primary Goal</p>
+                                        <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold capitalize">
+                                            {event.createdBy.primaryGoal}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default EventDetailsPage;
+
